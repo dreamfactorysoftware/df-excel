@@ -57,7 +57,7 @@ class ExcelService extends BaseRestService
         }
 
         $storageServiceId = array_get($this->config, 'storage_service_id');
-        $storageContainer = array_get($this->config, 'storage_container', '/');
+        $storageContainer = array_get($this->config, 'storage_container', '/') . '/';
         if (!empty($storageServiceId) && !empty($storageContainer)) {
             try {
                 $service = \ServiceManager::getServiceById($storageServiceId);
