@@ -52,14 +52,28 @@ class ExcelService extends BaseRestService
             throw new UnauthorizedException('There is no valid session for the current request.');
         }
 
-        if(ExampleComponent::getExample() !== "example"){
+        if (ExampleComponent::getExample() !== "example") {
             throw new BadRequestException('Something went wrong in Excel Component');
         }
 
-        $content = $this->excelModel->all();
+        $storageServiceId = array_get($this->config, 'storage_service_id');
+        $storageContainer = array_get($this->config, 'storage_container', '/');
+        if (!empty($storageServiceId) && !empty($storageContainer)) {
+            try {
+                $service = \ServiceManager::getServiceById($storageServiceId);
+                $serviceName = $service->getName();
+                $result = \ServiceManager::handleRequest(
+                    $serviceName,
+                    Verbs::GET,
+                    $storageContainer,
+                    []
+                );
+            } catch (\Exception $e) {
+                \Log::error('Failed to fetch from storage service . ' . $e->getMessage());
+            }
+        }
 
-        return ["message" => "You sent a GET request to DF " . $this->getName() . " service!",
-            "content" => $content];
+        return $result;
     }
 
     /**

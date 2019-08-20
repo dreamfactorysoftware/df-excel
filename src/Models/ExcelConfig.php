@@ -39,8 +39,7 @@ class ExcelConfig extends BaseServiceConfigModel
 
         switch ($schema['name']) {
             case 'storage_service_id':
-                $schema['label'] = 'Account/Organization';
-                $schema['description'] = 'Bitbucket Account/Organization/Username for accessing a repository.';
+                $schema['type'] = 'integer';
                 break;
 
         }
