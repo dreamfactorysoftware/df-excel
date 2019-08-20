@@ -19,28 +19,32 @@ class ExcelConfig extends BaseServiceConfigModel
     /** @var array */
     protected $fillable = [
         'service_id',
-        'label',
-        'description'
+        'storage_service_id',
+        'storage_container'
     ];
 
     /** @var array */
     protected $casts = [
         'service_id' => 'integer',
+        'storage_service_id' => 'integer',
     ];
-
-    /**
-     * The attributes excluded from the model's JSON form.
-     *
-     * @var array
-     */
-    protected $hidden = ['created_date'];
 
     /**
      * @param array $schema
      */
     protected static function prepareConfigSchemaField(array &$schema)
     {
+
         parent::prepareConfigSchemaField($schema);
+
+        switch ($schema['name']) {
+            case 'storage_service_id':
+                $schema['label'] = 'Account/Organization';
+                $schema['description'] = 'Bitbucket Account/Organization/Username for accessing a repository.';
+                break;
+
+        }
+
     }
 
 

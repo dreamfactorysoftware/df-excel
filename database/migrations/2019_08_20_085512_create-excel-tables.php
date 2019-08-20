@@ -29,9 +29,9 @@ class CreateExcelTables extends Migration
                 function (Blueprint $t) use ($onDelete) {
                     $t->integer('service_id')->unsigned()->primary();
                     $t->foreign('service_id')->references('id')->on('service')->onDelete('cascade');
-                    $t->string('storage_path')->nullable();
                     $t->integer('storage_service_id')->unsigned()->nullable();
                     $t->foreign('storage_service_id')->references('id')->on('service')->onDelete($onDelete);
+                    $t->string('storage_container')->nullable();
                 }
             );
         }
