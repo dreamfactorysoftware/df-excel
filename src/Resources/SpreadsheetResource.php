@@ -84,7 +84,7 @@ class SpreadsheetResource extends BaseRestResource
             if (empty($spreadsheetName)) {
                 return $content;
             } elseif (!empty($tabName)) {
-
+                return $content;
             } else {
                 if (!$this->doesSpreadsheetExist($content, $spreadsheetName)) {
                     throw new NotFoundException("Spreadsheet '{$spreadsheetName}' not found.");
@@ -102,12 +102,11 @@ class SpreadsheetResource extends BaseRestResource
                         foreach ($cellIterator as $cell) {
                             $row_values[] = $cell->getValue();
                         }
-                        if ($key == 1) {
+                        if ($key === 1) {
                             $headers = $row_values;
                             continue;
-                        } else {
-                            $records[] = $this->mapRowContent($headers, $row_values);
                         }
+                        $records[] = $this->mapRowContent($headers, $row_values);
                     }
                     $content[$worksheetName] = $records;
                 };
