@@ -62,6 +62,7 @@ class SpreadsheetResource extends BaseRestResource
      */
     protected function handleGET()
     {
+        ini_set('memory_limit', '-1');
         $resourceArray = $this->resourceArray;
         $spreadsheetName = array_get($resourceArray, 0);
         $tabName = array_get($resourceArray, 1);
@@ -82,6 +83,8 @@ class SpreadsheetResource extends BaseRestResource
 //
             if (empty($spreadsheetName)) {
                 return $content;
+            } elseif (!empty($tabName)) {
+
             } else {
                 if (!$this->doesSpreadsheetExist($content, $spreadsheetName)) {
                     throw new NotFoundException("Spreadsheet '{$spreadsheetName}' not found.");
@@ -90,44 +93,51 @@ class SpreadsheetResource extends BaseRestResource
                 $spreadsheetFile = $this->getSpreadsheet($serviceName, $storageContainer, $spreadsheetName);
                 $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($spreadsheetFile);
                 foreach ($spreadsheet->getSheetNames() as $worksheetName) {
-                    $content[$worksheetName] = $this->mapSpreadsheetContent($spreadsheet->getSheetByName($worksheetName)->toArray());
+                    $records = [];
+                    $headers = [];
+                    foreach ($spreadsheet->getSheetByName($worksheetName)->getRowIterator() as $key => $row) {
+                        $cellIterator = $row->getCellIterator();
+                        $cellIterator->setIterateOnlyExistingCells(TRUE);
+                        $row_values = [];
+                        foreach ($cellIterator as $cell) {
+                            $row_values[] = $cell->getValue();
+                        }
+                        if ($key == 1) {
+                            $headers = $row_values;
+                            continue;
+                        } else {
+                            $records[] = $this->mapRowContent($headers, $row_values);
+                        }
+                    }
+                    $content[$worksheetName] = $records;
                 };
                 return json_encode($content);
-//
             }
         } catch (\Exception $e) {
             \Log::error('Failed to fetch from storage service . ' . $e->getMessage());
             throw new RestException($e->getCode(), $e->getMessage());
         } catch (RuntimeException $e) {
             throw new RestException($e->getCode(), $e->getMessage());
-        } catch (\Gitlab\Exception\RuntimeException $e) {
-            throw new RestException($e->getCode(), $e->getMessage());
         }
-
-        return $content;
     }
 
 
     /**
      * Map spreadsheet content
      *
+     * @param $headers
      * @param $data
      * @return array
      */
-    protected function mapSpreadsheetContent($data)
+    protected function mapRowContent($headers, $data)
     {
         $result = [];
 
-        $keys = $data[0];
-        array_shift($data);
-        foreach ($data as $item) {
-            $newItem = [];
-            foreach ($item as $key => $value) {
-                $newItem [$keys[$key]] = $value;
-            }
-
-            $result [] = $newItem;
+        foreach ($data as $key => $cellValue) {
+            $header = isset($headers[$key]) ? $headers[$key] : $key;
+            $result[$header] = $cellValue;
         }
+
         return $result;
     }
 
