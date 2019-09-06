@@ -110,7 +110,7 @@ class SpreadsheetResource extends BaseRestResource
                     }
                     $content[$worksheetName] = $records;
                 };
-                return json_encode($content);
+                return ResponseFactory::create($content);
             }
         } catch (\Exception $e) {
             \Log::error('Failed to fetch from storage service . ' . $e->getMessage());
@@ -119,7 +119,6 @@ class SpreadsheetResource extends BaseRestResource
             throw new RestException($e->getCode(), $e->getMessage());
         }
     }
-
 
     /**
      * Map spreadsheet content
@@ -203,13 +202,18 @@ class SpreadsheetResource extends BaseRestResource
                     'operationId' => 'get' . $capitalized . 'Spreadsheet',
                     'parameters' => [
                         [
+                            'name' => 'is_first_row_headers',
+                            'in' => 'query',
+                            'schema' => ['type' => 'boolean'],
+                            'description' => 'Set true if headers located in the first row',
+                        ],
+                        [
                             'name' => 'spreadsheet_name',
                             'in' => 'path',
                             'schema' => ['type' => 'string'],
                             'description' => 'Spreadsheet name',
                             'required' => true,
                         ],
-                        ApiOptions::documentOption(ApiOptions::AS_LIST),
                     ],
                     'responses' => [
                         '200' => ['$ref' => '#/components/responses/SpreadsheetResponse'],
@@ -222,6 +226,12 @@ class SpreadsheetResource extends BaseRestResource
                     'description' => 'Fetches a spreadsheet tab data',
                     'operationId' => 'get' . $capitalized . 'SpreadsheetTab',
                     'parameters' => [
+                        [
+                            'name' => 'is_first_row_headers',
+                            'in' => 'query',
+                            'schema' => ['type' => 'boolean'],
+                            'description' => 'Set true if headers located in the first row',
+                        ],
                         [
                             'name' => 'spreadsheet_name',
                             'in' => 'path',
