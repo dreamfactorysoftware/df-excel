@@ -83,7 +83,7 @@ class PHPSpreadsheetWrapper
                 foreach ($cellIterator as $cell) {
                     $row_values[] = $cell->getValue();
                 }
-                if ($key === 1) {
+                if ($this->firstRowHeaders && $key === 1) {
                     $headers = $row_values;
                     continue;
                 }
@@ -109,18 +109,18 @@ class PHPSpreadsheetWrapper
      *
      * @param $headers
      * @param $data
-     * @return array
+     * @return object
      */
     protected function mapRowContent($headers, $data)
     {
         $result = [];
 
         foreach ($data as $key => $cellValue) {
-            $header = isset($headers[$key]) ? $headers[$key] : $key;
+            $header = isset($headers[$key]) ? $headers[$key] : (string) $key;
             $result[$header] = $cellValue;
         }
 
-        return $result;
+        return (object)$result;
     }
 
 
