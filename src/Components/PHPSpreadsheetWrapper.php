@@ -99,7 +99,7 @@ class PHPSpreadsheetWrapper
      *
      * @return array
      */
-    public function getSpreadsheetTab()
+    public function getWorksheet()
     {
         return $this->storageContainerFiles;
     }
