@@ -56,7 +56,7 @@ class SpreadsheetResource extends BaseRestResource
     {
         $resourceArray = $this->resourceArray;
         $spreadsheetName = array_get($resourceArray, 0);
-        $tabName = array_get($resourceArray, 1);
+        $worksheetName = array_get($resourceArray, 1);
 
         $serviceConfig = $this->getService()->getConfig();
         $storageServiceId = array_get($serviceConfig, 'storage_service_id');
@@ -76,8 +76,8 @@ class SpreadsheetResource extends BaseRestResource
 
             if (empty($spreadsheetName)) {
                 return $content;
-            } elseif (!empty($tabName)) {
-                return $spreadsheetWrapper->getSpreadsheetTab();
+            } elseif (!empty($worksheetName)) {
+                return $spreadsheetWrapper->getWorksheet();
             } else {
                 return ResponseFactory::create($spreadsheetWrapper->getSpreadsheet(), 'application/json');
             }
@@ -123,11 +123,11 @@ class SpreadsheetResource extends BaseRestResource
                     ],
                 ],
             ],
-            $path . '/{spreadsheet_name}/{tab}' => [
+            $path . '/{spreadsheet_name}/{worksheet}' => [
                 'get' => [
-                    'summary' => 'Get Spreadsheet Tab',
-                    'description' => 'Fetches a spreadsheet tab data',
-                    'operationId' => 'get' . $capitalized . 'SpreadsheetTab',
+                    'summary' => 'Get Spreadsheet Worksheet',
+                    'description' => 'Fetches a spreadsheet worksheet data',
+                    'operationId' => 'get' . $capitalized . 'SpreadsheetWorksheet',
                     'parameters' => [
                         [
                             'name' => 'first_row_headers',
@@ -143,15 +143,15 @@ class SpreadsheetResource extends BaseRestResource
                             'required' => true,
                         ],
                         [
-                            'name' => 'tab',
+                            'name' => 'worksheet',
                             'in' => 'path',
                             'schema' => ['type' => 'string'],
-                            'description' => 'A tab name',
+                            'description' => 'A worksheet name',
                             'required' => true,
                         ],
                     ],
                     'responses' => [
-                        '200' => ['$ref' => '#/components/responses/SpreadsheetTabResponse'],
+                        '200' => ['$ref' => '#/components/responses/SpreadsheetWorksheetResponse'],
                     ],
                 ],
             ],
@@ -174,12 +174,12 @@ class SpreadsheetResource extends BaseRestResource
                     ]
                 ]
             ],
-            'SpreadsheetTabResponse' => [
+            'SpreadsheetWorksheetResponse' => [
                 'description' => 'Success',
                 'content' => [
                     'application/json' => [
                         'schema' => [
-                            '$ref' => '#/components/schemas/SpreadsheetTab'
+                            '$ref' => '#/components/schemas/SpreadsheetWorksheet'
                         ]
                     ]
                 ]
@@ -200,12 +200,12 @@ class SpreadsheetResource extends BaseRestResource
                     ],
                 ]
             ],
-            'SpreadsheetTab' => [
+            'SpreadsheetWorksheet' => [
                 'type' => 'object',
                 'properties' => [
                     'resource' => [
                         'type' => 'array',
-                        'items' => ['$ref' => '#/components/schemas/SpreadsheetTab']
+                        'items' => ['$ref' => '#/components/schemas/SpreadsheetWorksheet']
                     ],
                 ],
             ],
