@@ -79,7 +79,7 @@ class SpreadsheetResource extends BaseRestResource
             } elseif (!empty($tabName)) {
                 return $spreadsheetWrapper->getSpreadsheetTab();
             } else {
-                return ResponseFactory::create($spreadsheetWrapper->getSpreadsheet());
+                return ResponseFactory::create($spreadsheetWrapper->getSpreadsheet(), 'application/json');
             }
         } catch (\Exception $e) {
             \Log::error('Failed to fetch from storage service . ' . $e->getMessage());

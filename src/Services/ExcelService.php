@@ -19,27 +19,4 @@ class ExcelService extends BaseRestService
             'label'      => 'Spreadsheet'
         ]
     ];
-
-    /**
-     * Fetches spreadsheet as a json.
-     *
-     * @return array
-     * @throws UnauthorizedException
-     */
-    /*protected function handleGET()
-    {
-        $user = Session::user();
-
-        if (empty($user)) {
-            throw new UnauthorizedException('There is no valid session for the current request.');
-        }
-
-        if (ExampleComponent::getExample() !== "example") {
-            throw new BadRequestException('Something went wrong in Excel Component');
-        }
-
-
-
-        return $result;
-    }*/
 }
