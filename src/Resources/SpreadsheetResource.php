@@ -3,20 +3,13 @@
 namespace DreamFactory\Core\Excel\Resources;
 
 use DreamFactory\Core\Enums\Verbs;
-use DreamFactory\Core\Exceptions\BadRequestException;
-use DreamFactory\Core\Exceptions\UnauthorizedException;
-use DreamFactory\Core\Exceptions\NotFoundException;
+use DreamFactory\Core\Excel\Components\PHPSpreadsheetWrapper;
 use DreamFactory\Core\Exceptions\RestException;
 use DreamFactory\Core\Resources\BaseRestResource;
 use DreamFactory\Core\Excel\Models\ExcelConfig;
-use DreamFactory\Core\Utility\Curl;
 use DreamFactory\Core\Enums\ApiOptions;
-use DreamFactory\Core\Utility\JWTUtilities;
-use DreamFactory\Core\Utility\Session;
 use DreamFactory\Core\Utility\ResponseFactory;
 use ServiceManager;
-
-// Resource can extend BaseRestResource,BaseSystemResource, ReadOnlySystemResource, or any newly created
 
 class SpreadsheetResource extends BaseRestResource
 {
@@ -58,59 +51,35 @@ class SpreadsheetResource extends BaseRestResource
      * Fetches spreadsheet as a json.
      *
      * @return array
-     * @throws UnauthorizedException
      */
     protected function handleGET()
     {
-        ini_set('memory_limit', '-1');
         $resourceArray = $this->resourceArray;
         $spreadsheetName = array_get($resourceArray, 0);
         $tabName = array_get($resourceArray, 1);
 
         $serviceConfig = $this->getService()->getConfig();
         $storageServiceId = array_get($serviceConfig, 'storage_service_id');
-        $storageContainer = array_get($serviceConfig, 'storage_container', '/') . '/';
-        $service = \ServiceManager::getServiceById($storageServiceId);
+        $storageContainer = array_get($serviceConfig, 'storage_container', '/');
+        $service = ServiceManager::getServiceById($storageServiceId);
+        $firstRowHeaders = $this->request->getParameterAsBool('first_row_headers');
         $serviceName = $service->getName();
 
         try {
-            $content = \ServiceManager::handleRequest(
+            $content = ServiceManager::handleRequest(
                 $serviceName,
                 Verbs::GET,
                 $storageContainer,
                 []
             );
-//
+            $spreadsheetWrapper = new PHPSpreadsheetWrapper($content, $serviceName, $storageContainer, $spreadsheetName, $firstRowHeaders);
+
             if (empty($spreadsheetName)) {
                 return $content;
             } elseif (!empty($tabName)) {
-                return $content;
+                return $spreadsheetWrapper->getSpreadsheetTab();
             } else {
-                if (!$this->doesSpreadsheetExist($content, $spreadsheetName)) {
-                    throw new NotFoundException("Spreadsheet '{$spreadsheetName}' not found.");
-                };
-                $content = [];
-                $spreadsheetFile = $this->getSpreadsheet($serviceName, $storageContainer, $spreadsheetName);
-                $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($spreadsheetFile);
-                foreach ($spreadsheet->getSheetNames() as $worksheetName) {
-                    $records = [];
-                    $headers = [];
-                    foreach ($spreadsheet->getSheetByName($worksheetName)->getRowIterator() as $key => $row) {
-                        $cellIterator = $row->getCellIterator();
-                        $cellIterator->setIterateOnlyExistingCells(TRUE);
-                        $row_values = [];
-                        foreach ($cellIterator as $cell) {
-                            $row_values[] = $cell->getValue();
-                        }
-                        if ($key === 1) {
-                            $headers = $row_values;
-                            continue;
-                        }
-                        $records[] = $this->mapRowContent($headers, $row_values);
-                    }
-                    $content[$worksheetName] = $records;
-                };
-                return ResponseFactory::create($content);
+                return ResponseFactory::create($spreadsheetWrapper->getSpreadsheet());
             }
         } catch (\Exception $e) {
             \Log::error('Failed to fetch from storage service . ' . $e->getMessage());
@@ -118,72 +87,6 @@ class SpreadsheetResource extends BaseRestResource
         } catch (RuntimeException $e) {
             throw new RestException($e->getCode(), $e->getMessage());
         }
-    }
-
-    /**
-     * Map spreadsheet content
-     *
-     * @param $headers
-     * @param $data
-     * @return array
-     */
-    protected function mapRowContent($headers, $data)
-    {
-        $result = [];
-
-        foreach ($data as $key => $cellValue) {
-            $header = isset($headers[$key]) ? $headers[$key] : $key;
-            $result[$header] = $cellValue;
-        }
-
-        return $result;
-    }
-
-
-    /**
-     * Does spreadsheet exists in the given container
-     *
-     * @param $list
-     * @param $spreadsheetName
-     * @return bool
-     */
-    protected function doesSpreadsheetExist($list, $spreadsheetName)
-    {
-        // TODO: maybe use file service's fileExists method ?
-        if (isset($list->getContent()['resource'])) {
-            $list = $list->getContent()['resource'];
-        } else {
-            $list = $list->getContent();
-        }
-        if ($list) {
-            foreach ($list as $file) {
-                if (isset($file['name']) && $file['name'] === $spreadsheetName) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Get Spreadsheet using file storage service
-     *
-     * @param $storageServiceName
-     * @param $path
-     * @return
-     */
-    protected function getSpreadsheet($storageServiceName, $containerPath, $spreadsheetname)
-    {
-        $result = \ServiceManager::handleRequest(
-            $storageServiceName,
-            Verbs::GET,
-            $containerPath . $spreadsheetname,
-            ['download' => 1, 'content' => 1, 'include_properties' => 1]
-        );
-        $tmpFile = tempnam(sys_get_temp_dir(), 'tempexcel');
-        file_put_contents($tmpFile, base64_decode($result->getContent()['content']));
-        return $tmpFile;
     }
 
     /** {@inheritdoc} */
@@ -202,7 +105,7 @@ class SpreadsheetResource extends BaseRestResource
                     'operationId' => 'get' . $capitalized . 'Spreadsheet',
                     'parameters' => [
                         [
-                            'name' => 'is_first_row_headers',
+                            'name' => 'first_row_headers',
                             'in' => 'query',
                             'schema' => ['type' => 'boolean'],
                             'description' => 'Set true if headers located in the first row',
@@ -227,7 +130,7 @@ class SpreadsheetResource extends BaseRestResource
                     'operationId' => 'get' . $capitalized . 'SpreadsheetTab',
                     'parameters' => [
                         [
-                            'name' => 'is_first_row_headers',
+                            'name' => 'first_row_headers',
                             'in' => 'query',
                             'schema' => ['type' => 'boolean'],
                             'description' => 'Set true if headers located in the first row',
