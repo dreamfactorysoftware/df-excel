@@ -53,7 +53,7 @@ class PHPSpreadsheetWrapper
      */
     public function __construct($storageContainerFiles, $serviceName, $storageContainer, $spreadsheetName, $firstRowHeaders)
     {
-        $this->storageContainerFiles= $storageContainerFiles;
+        $this->storageContainerFiles = $storageContainerFiles;
         $this->serviceName = $serviceName;
         $this->storageContainer = $storageContainer;
         $this->spreadsheetName = $spreadsheetName;
@@ -61,47 +61,63 @@ class PHPSpreadsheetWrapper
     }
 
     /**
-     * Get all spreadsheet data as JSON
+     * Get all spreadsheet data
      *
      * @return array
      */
     public function getSpreadsheet()
     {
-        if (!self::doesSpreadsheetExist($this->spreadsheetName, $this->storageContainerFiles)) {
+        if (!$this->doesSpreadsheetExist($this->spreadsheetName, $this->storageContainerFiles)) {
             throw new NotFoundException("Spreadsheet '{$this->spreadsheetName}' not found.");
         };
         $content = [];
-        $spreadsheetFile = self::getSpreadsheetFile();
+        $spreadsheetFile = $this->getSpreadsheetFile();
         $spreadsheet = IOFactory::load($spreadsheetFile);
         foreach ($spreadsheet->getSheetNames() as $worksheetName) {
-            $records = [];
-            $headers = [];
-            foreach ($spreadsheet->getSheetByName($worksheetName)->getRowIterator() as $key => $row) {
-                $cellIterator = $row->getCellIterator();
-                $cellIterator->setIterateOnlyExistingCells(TRUE);
-                $row_values = [];
-                foreach ($cellIterator as $cell) {
-                    $row_values[] = $cell->getValue();
-                }
-                if ($this->firstRowHeaders && $key === 1) {
-                    $headers = $row_values;
-                    continue;
-                }
-                $records[] = self::mapRowContent($headers, $row_values);
-            }
-            $content[$worksheetName] = $records;
+            $content[$worksheetName] = $this->getWorksheet($worksheetName, $spreadsheet);
         };
         return $content;
     }
 
     /**
-     * Get all spreadsheet data as JSON
+     * Get worksheet data
      *
+     * @param string $worksheetName
+     * @param array $spreadsheet
      * @return array
      */
-    public function getWorksheet()
+    public function getWorksheet($worksheetName = '', $spreadsheet = [])
     {
-        return $this->storageContainerFiles;
+        $content = [];
+        $headers = [];
+
+        if(empty($spreadsheet)) {
+            $spreadsheetFile = $this->getSpreadsheetFile();
+            $spreadsheet = IOFactory::load($spreadsheetFile);
+        }
+
+        if (!$this->doesSpreadsheetExist($this->spreadsheetName, $this->storageContainerFiles)) {
+            throw new NotFoundException("Spreadsheet '{$this->spreadsheetName}' not found.");
+        };
+        if (!$spreadsheet->sheetNameExists($worksheetName)) {
+            throw new NotFoundException("Worksheet '{$worksheetName}' does not exist in '{$this->spreadsheetName}'.");
+        };
+
+        foreach ($spreadsheet->getSheetByName($worksheetName)->getRowIterator() as $key => $row) {
+            $cellIterator = $row->getCellIterator();
+            $cellIterator->setIterateOnlyExistingCells(TRUE);
+            $row_values = [];
+            foreach ($cellIterator as $cell) {
+                $row_values[] = $cell->getValue();
+            }
+            if ($this->firstRowHeaders && $key === 1) {
+                $headers = $row_values;
+                continue;
+            }
+            $content[] = $this->mapRowContent($headers, $row_values);
+        }
+
+        return $content;
     }
 
     /**
@@ -116,7 +132,7 @@ class PHPSpreadsheetWrapper
         $result = [];
 
         foreach ($data as $key => $cellValue) {
-            $header = isset($headers[$key]) ? $headers[$key] : (string) $key;
+            $header = isset($headers[$key]) ? $headers[$key] : (string)$key;
             $result[$header] = $cellValue;
         }
 

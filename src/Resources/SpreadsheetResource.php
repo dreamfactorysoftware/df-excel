@@ -77,7 +77,7 @@ class SpreadsheetResource extends BaseRestResource
             if (empty($spreadsheetName)) {
                 return $content;
             } elseif (!empty($worksheetName)) {
-                return $spreadsheetWrapper->getWorksheet();
+                return ResponseFactory::create($spreadsheetWrapper->getWorksheet($worksheetName), 'application/json');
             } else {
                 return ResponseFactory::create($spreadsheetWrapper->getSpreadsheet(), 'application/json');
             }

@@ -28,13 +28,13 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
         $this->app->resolving('df.service', function (ServiceManager $df) {
             $df->addType(
                 new ServiceType([
-                    'name'            => 'excel',
-                    'label'           => 'Excel Service',
-                    'description'     => 'Service to manage XLS, XLSX, CSV files.',
-                    'group'           => 'Excel', // or if you want to use defined groups use DreamFactory\Core\Enums\ServiceTypeGroups, ServiceTypeGroups::REMOTE
-                    'subscription_required' => LicenseLevel::GOLD, // don't specify this if you want the service be used on Open Source version
-                    'config_handler'  => ExcelConfig::class,
-                    'factory'         => function ($config) {
+                    'name'                  => 'excel',
+                    'label'                 => 'Excel Service',
+                    'description'           => 'Service to manage XLS, XLSX, CSV files.',
+                    'group'                 => 'Excel',
+                    'subscription_required' => LicenseLevel::GOLD,
+                    'config_handler'        => ExcelConfig::class,
+                    'factory'               => function ($config) {
                         return new ExcelService($config);
                     },
                 ])
