@@ -64,6 +64,9 @@ class PHPSpreadsheetWrapper
      * Get all spreadsheet data
      *
      * @return array
+     * @throws NotFoundException
+     * @throws \PhpOffice\PhpSpreadsheet\Exception
+     * @throws \PhpOffice\PhpSpreadsheet\Reader\Exception
      */
     public function getSpreadsheet()
     {
@@ -85,6 +88,9 @@ class PHPSpreadsheetWrapper
      * @param string $worksheetName
      * @param array $spreadsheet
      * @return array
+     * @throws NotFoundException
+     * @throws \PhpOffice\PhpSpreadsheet\Exception
+     * @throws \PhpOffice\PhpSpreadsheet\Reader\Exception
      */
     public function getWorksheet($worksheetName = '', $spreadsheet = [])
     {
@@ -105,10 +111,10 @@ class PHPSpreadsheetWrapper
 
         foreach ($spreadsheet->getSheetByName($worksheetName)->getRowIterator() as $key => $row) {
             $cellIterator = $row->getCellIterator();
-            $cellIterator->setIterateOnlyExistingCells(TRUE);
+            $cellIterator->setIterateOnlyExistingCells(true);
             $row_values = [];
             foreach ($cellIterator as $cell) {
-                $row_values[] = $cell->getValue();
+                $row_values[] = $cell->getFormattedValue();
             }
             if ($this->firstRowHeaders && $key === 1) {
                 $headers = $row_values;

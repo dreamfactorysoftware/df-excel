@@ -51,6 +51,7 @@ class SpreadsheetResource extends BaseRestResource
      * Fetches spreadsheet as a json.
      *
      * @return array
+     * @throws RestException
      */
     protected function handleGET()
     {
@@ -62,7 +63,7 @@ class SpreadsheetResource extends BaseRestResource
         $storageServiceId = array_get($serviceConfig, 'storage_service_id');
         $storageContainer = array_get($serviceConfig, 'storage_container', '/');
         $service = ServiceManager::getServiceById($storageServiceId);
-        $firstRowHeaders = $this->request->getParameterAsBool('first_row_headers', true);
+        $firstRowHeaders = $this->request->getParameterAsBool('first_row_headers', false);
         $serviceName = $service->getName();
 
         try {
@@ -109,16 +110,11 @@ class SpreadsheetResource extends BaseRestResource
                     'parameters' => [
                         [
                             'name' => 'include_folders',
-                            'in' => 'path',
+                            'in' => 'query',
                             'schema' => ['type' => 'boolean'],
                             'description' => 'Include folders in the returned listing. Default is false.',
                         ],
-                        [
-                            'name' => 'as_list',
-                            'in' => 'query',
-                            'schema' => ['type' => 'boolean'],
-                            'description' => 'Return only a list of the resource identifiers.',
-                        ],
+                        ApiOptions::documentOption(ApiOptions::AS_LIST),
                     ],
                     'responses' => [
                         '200' => ['$ref' => '#/components/responses/SpreadsheetListResponse'],
