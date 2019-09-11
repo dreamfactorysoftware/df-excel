@@ -62,7 +62,7 @@ class SpreadsheetResource extends BaseRestResource
         $storageServiceId = array_get($serviceConfig, 'storage_service_id');
         $storageContainer = array_get($serviceConfig, 'storage_container', '/');
         $service = ServiceManager::getServiceById($storageServiceId);
-        $firstRowHeaders = $this->request->getParameterAsBool('first_row_headers');
+        $firstRowHeaders = $this->request->getParameterAsBool('first_row_headers', true);
         $serviceName = $service->getName();
 
         try {
@@ -70,7 +70,10 @@ class SpreadsheetResource extends BaseRestResource
                 $serviceName,
                 Verbs::GET,
                 $storageContainer,
-                []
+                [
+                    'include_folders' => $this->request->getParameterAsBool('include_folders', false),
+                    'as_list' => $this->request->getParameterAsBool('as_list')
+                ]
             );
             $spreadsheetWrapper = new PHPSpreadsheetWrapper($content, $serviceName, $storageContainer, $spreadsheetName, $firstRowHeaders);
 
@@ -98,6 +101,30 @@ class SpreadsheetResource extends BaseRestResource
         $path = '/' . $resourceName;
 
         $paths = [
+            $path => [
+                'get' => [
+                    'summary' => 'Get folder content as list',
+                    'description' => 'Content of a folder as a list',
+                    'operationId' => 'get' . $capitalized . ' folder',
+                    'parameters' => [
+                        [
+                            'name' => 'include_folders',
+                            'in' => 'path',
+                            'schema' => ['type' => 'boolean'],
+                            'description' => 'Include folders in the returned listing. Default is false.',
+                        ],
+                        [
+                            'name' => 'as_list',
+                            'in' => 'query',
+                            'schema' => ['type' => 'boolean'],
+                            'description' => 'Return only a list of the resource identifiers.',
+                        ],
+                    ],
+                    'responses' => [
+                        '200' => ['$ref' => '#/components/responses/SpreadsheetListResponse'],
+                    ],
+                ],
+            ],
             $path . '/{spreadsheet_name}' => [
                 'get' => [
                     'summary' => 'Get Spreadsheet data as a json',
@@ -164,6 +191,16 @@ class SpreadsheetResource extends BaseRestResource
     protected function getApiDocResponses()
     {
         return [
+            'SpreadsheetListResponse' => [
+                'description' => 'Success',
+                'content' => [
+                    'application/json' => [
+                        'schema' => [
+                            '$ref' => '#/components/schemas/SpreadsheetList'
+                        ]
+                    ]
+                ]
+            ],
             'SpreadsheetResponse' => [
                 'description' => 'Success',
                 'content' => [
@@ -191,6 +228,15 @@ class SpreadsheetResource extends BaseRestResource
     protected function getApiDocSchemas()
     {
         return [
+            'SpreadsheetList' => [
+                'type' => 'object',
+                'properties' => [
+                    'resource' => [
+                        'type' => 'array',
+                        'items' => ['$ref' => '#/components/schemas/SpreadsheetList']
+                    ],
+                ]
+            ],
             'Spreadsheet' => [
                 'type' => 'object',
                 'properties' => [
