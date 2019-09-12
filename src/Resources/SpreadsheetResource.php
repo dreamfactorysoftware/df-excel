@@ -50,7 +50,7 @@ class SpreadsheetResource extends BaseRestResource
     /**
      * Fetches spreadsheet as a json.
      *
-     * @return array
+     * @return \DreamFactory\Core\Utility\ServiceResponse
      * @throws RestException
      */
     protected function handleGET()
@@ -63,7 +63,6 @@ class SpreadsheetResource extends BaseRestResource
         $storageServiceId = array_get($serviceConfig, 'storage_service_id');
         $storageContainer = array_get($serviceConfig, 'storage_container', '/');
         $service = ServiceManager::getServiceById($storageServiceId);
-        $firstRowHeaders = $this->request->getParameterAsBool('first_row_headers', false);
         $serviceName = $service->getName();
 
         try {
@@ -76,13 +75,16 @@ class SpreadsheetResource extends BaseRestResource
                     'as_list' => $this->request->getParameterAsBool('as_list')
                 ]
             );
-            $spreadsheetWrapper = new PHPSpreadsheetWrapper($content, $serviceName, $storageContainer, $spreadsheetName, $firstRowHeaders);
 
             if (empty($spreadsheetName)) {
                 return $content;
-            } elseif (!empty($worksheetName)) {
-                return ResponseFactory::create($spreadsheetWrapper->getWorksheetData($worksheetName), 'application/json');
             } else {
+                $spreadsheetWrapper = new PHPSpreadsheetWrapper($content, $serviceName, $storageContainer, $spreadsheetName, $this->request->getParameters());
+
+                if (!empty($worksheetName)) {
+                    return ResponseFactory::create($spreadsheetWrapper->getWorksheetData($worksheetName), 'application/json');
+                }
+
                 return ResponseFactory::create($spreadsheetWrapper->getSpreadsheetData(), 'application/json');
             }
         } catch (\Exception $e) {
@@ -127,12 +129,7 @@ class SpreadsheetResource extends BaseRestResource
                     'description' => 'Fetches a spreadsheet data as a json array where keys is header names',
                     'operationId' => 'get' . $capitalized . 'Spreadsheet',
                     'parameters' => [
-                        [
-                            'name' => 'first_row_headers',
-                            'in' => 'query',
-                            'schema' => ['type' => 'boolean'],
-                            'description' => 'Set true if headers located in the first row',
-                        ],
+                        $this->getSpreadsheetApiDocsParameters(),
                         [
                             'name' => 'spreadsheet_name',
                             'in' => 'path',
@@ -152,12 +149,7 @@ class SpreadsheetResource extends BaseRestResource
                     'description' => 'Fetches a spreadsheet worksheet data',
                     'operationId' => 'get' . $capitalized . 'SpreadsheetWorksheet',
                     'parameters' => [
-                        [
-                            'name' => 'first_row_headers',
-                            'in' => 'query',
-                            'schema' => ['type' => 'boolean'],
-                            'description' => 'Set true if headers located in the first row',
-                        ],
+                        $this->getSpreadsheetApiDocsParameters(),
                         [
                             'name' => 'spreadsheet_name',
                             'in' => 'path',
@@ -181,6 +173,36 @@ class SpreadsheetResource extends BaseRestResource
         ];
 
         return $paths;
+    }
+
+    protected function getSpreadsheetApiDocsParameters()
+    {
+        return [
+            [
+                'name' => 'first_row_headers',
+                'in' => 'query',
+                'schema' => ['type' => 'boolean'],
+                'description' => 'Set true if headers located in the first row.',
+            ],
+            [
+                'name' => 'iterate_only_existing_cells',
+                'in' => 'query',
+                'schema' => ['type' => 'boolean'],
+                'description' => 'Set true to use iterateOnlyExistingCells mod.',
+            ],
+            [
+                'name' => 'formatted_values',
+                'in' => 'query',
+                'schema' => ['type' => 'boolean'],
+                'description' => 'Set true to use getFormattedValue() from cell.',
+            ],
+            [
+                'name' => 'memory_limit',
+                'in' => 'query',
+                'schema' => ['type' => 'string'],
+                'description' => 'Set php.ini\'s memory limit. (-1 = no limit)',
+            ]
+        ];
     }
 
     /** {@inheritdoc} */
