@@ -47,33 +47,39 @@ class PHPSpreadsheetWrapper
     /**
      * Does first row contain headers.
      *
-     * @type boolean
+     * @type array
      */
-    public $firstRowHeaders = '';
+    public $parameters = [];
 
     /**
      * @param $storageContainerFiles
      * @param $serviceName
      * @param $storageContainer
      * @param $spreadsheetName
-     * @param $firstRowHeaders
+     * @param $parameters
      * @throws NotFoundException
      * @throws \PhpOffice\PhpSpreadsheet\Reader\Exception
      */
-    public function __construct($storageContainerFiles, $serviceName, $storageContainer, $spreadsheetName, $firstRowHeaders)
+    public function __construct($storageContainerFiles, $serviceName, $storageContainer, $spreadsheetName, $parameters)
     {
         $this->storageContainerFiles = $storageContainerFiles;
         $this->serviceName = $serviceName;
         $this->storageContainer = $storageContainer;
         $this->spreadsheetName = $spreadsheetName;
-        $this->firstRowHeaders = $firstRowHeaders;
+        $this->parameters = $parameters;
 
         if (!$this->doesSpreadsheetExist($this->spreadsheetName, $this->storageContainerFiles)) {
             throw new NotFoundException("Spreadsheet '{$this->spreadsheetName}' not found.");
         };
 
+        if (isset($this->parameters['memory_limit'])) {
+            ini_set('memory_limit', $this->parameters['memory_limit']);
+        }
+
         $spreadsheetFile = $this->getSpreadsheetFile();
-        $this->spreadsheet = IOFactory::load($spreadsheetFile);
+        $inputFileType = IOFactory::identify($spreadsheetFile);
+        $reader = IOFactory::createReader($inputFileType);
+        $this->spreadsheet = $reader->load($spreadsheetFile);
     }
 
     /**
@@ -106,22 +112,28 @@ class PHPSpreadsheetWrapper
     {
         $content = [];
         $headers = [];
+        $iterateExistingCells = isset($this->parameters['iterate_only_existing_cells']) && filter_var($this->parameters['iterate_only_existing_cells'], FILTER_VALIDATE_BOOLEAN);
+        $formattedValues = isset($this->parameters['formatted_values']) && filter_var($this->parameters['formatted_values'], FILTER_VALIDATE_BOOLEAN);
+        $firstRowHeaders = isset($this->parameters['first_row_headers']) && filter_var($this->parameters['first_row_headers'], FILTER_VALIDATE_BOOLEAN);
 
         if (!$this->spreadsheet->sheetNameExists($worksheetName)) {
             throw new NotFoundException("Worksheet '{$worksheetName}' does not exist in '{$this->spreadsheetName}'.");
         };
 
         foreach ($this->spreadsheet->getSheetByName($worksheetName)->getRowIterator() as $key => $row) {
-            $cellIterator = $row->getCellIterator();
-            $cellIterator->setIterateOnlyExistingCells(true);
             $row_values = [];
-            foreach ($cellIterator as $cell) {
-                $row_values[] = $cell->getFormattedValue();
+            $cellIterator = $row->getCellIterator();
+            $cellIterator->setIterateOnlyExistingCells($iterateExistingCells);
+
+            foreach ($cellIterator as $cellKey => $cell) {
+                $cellValue = $formattedValues ? $cell->getFormattedValue() : $cell->getValue();
+                $row_values[$cellKey] = $cellValue;
             }
-            if ($this->firstRowHeaders && $key === 1) {
+            if ($firstRowHeaders && $key === 1) {
                 $headers = $row_values;
                 continue;
             }
+
             $content[] = $this->mapRowContent($headers, $row_values);
         }
 
