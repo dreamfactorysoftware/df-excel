@@ -129,7 +129,30 @@ class SpreadsheetResource extends BaseRestResource
                     'description' => 'Fetches a spreadsheet data as a json array where keys is header names',
                     'operationId' => 'get' . $capitalized . 'Spreadsheet',
                     'parameters' => [
-                        $this->getSpreadsheetApiDocsParameters(),
+                        [
+                            'name' => 'first_row_headers',
+                            'in' => 'query',
+                            'schema' => ['type' => 'boolean'],
+                            'description' => 'Set true if headers located in the first row.',
+                        ],
+                        [
+                            'name' => 'iterate_only_existing_cells',
+                            'in' => 'query',
+                            'schema' => ['type' => 'boolean'],
+                            'description' => 'Set true to use iterateOnlyExistingCells mod.',
+                        ],
+                        [
+                            'name' => 'formatted_values',
+                            'in' => 'query',
+                            'schema' => ['type' => 'boolean'],
+                            'description' => 'Set true to use getFormattedValue() from cell.',
+                        ],
+                        [
+                            'name' => 'memory_limit',
+                            'in' => 'query',
+                            'schema' => ['type' => 'string'],
+                            'description' => 'Set php.ini\'s memory limit. (-1 = no limit)',
+                        ],
                         [
                             'name' => 'spreadsheet_name',
                             'in' => 'path',
@@ -149,7 +172,30 @@ class SpreadsheetResource extends BaseRestResource
                     'description' => 'Fetches a spreadsheet worksheet data',
                     'operationId' => 'get' . $capitalized . 'SpreadsheetWorksheet',
                     'parameters' => [
-                        $this->getSpreadsheetApiDocsParameters(),
+                        [
+                            'name' => 'first_row_headers',
+                            'in' => 'query',
+                            'schema' => ['type' => 'boolean'],
+                            'description' => 'Set true if headers located in the first row.',
+                        ],
+                        [
+                            'name' => 'iterate_only_existing_cells',
+                            'in' => 'query',
+                            'schema' => ['type' => 'boolean'],
+                            'description' => 'Set true to use iterateOnlyExistingCells mod.',
+                        ],
+                        [
+                            'name' => 'formatted_values',
+                            'in' => 'query',
+                            'schema' => ['type' => 'boolean'],
+                            'description' => 'Set true to use getFormattedValue() from cell.',
+                        ],
+                        [
+                            'name' => 'memory_limit',
+                            'in' => 'query',
+                            'schema' => ['type' => 'string'],
+                            'description' => 'Set php.ini\'s memory limit. (-1 = no limit)',
+                        ],
                         [
                             'name' => 'spreadsheet_name',
                             'in' => 'path',
