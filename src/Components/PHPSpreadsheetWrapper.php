@@ -17,6 +17,13 @@ class PHPSpreadsheetWrapper
     public $storageContainerFiles = [];
 
     /**
+     * Response of storage container GET folder.
+     *
+     * @type PhpOffice\PhpSpreadsheet\Spreadsheet
+     */
+    public $spreadsheet;
+
+    /**
      * Storage service name.
      *
      * @type string
@@ -50,6 +57,8 @@ class PHPSpreadsheetWrapper
      * @param $storageContainer
      * @param $spreadsheetName
      * @param $firstRowHeaders
+     * @throws NotFoundException
+     * @throws \PhpOffice\PhpSpreadsheet\Reader\Exception
      */
     public function __construct($storageContainerFiles, $serviceName, $storageContainer, $spreadsheetName, $firstRowHeaders)
     {
@@ -58,6 +67,13 @@ class PHPSpreadsheetWrapper
         $this->storageContainer = $storageContainer;
         $this->spreadsheetName = $spreadsheetName;
         $this->firstRowHeaders = $firstRowHeaders;
+
+        if (!$this->doesSpreadsheetExist($this->spreadsheetName, $this->storageContainerFiles)) {
+            throw new NotFoundException("Spreadsheet '{$this->spreadsheetName}' not found.");
+        };
+
+        $spreadsheetFile = $this->getSpreadsheetFile();
+        $this->spreadsheet = IOFactory::load($spreadsheetFile);
     }
 
     /**
@@ -66,19 +82,15 @@ class PHPSpreadsheetWrapper
      * @return array
      * @throws NotFoundException
      * @throws \PhpOffice\PhpSpreadsheet\Exception
-     * @throws \PhpOffice\PhpSpreadsheet\Reader\Exception
      */
-    public function getSpreadsheet()
+    public function getSpreadsheetData()
     {
-        if (!$this->doesSpreadsheetExist($this->spreadsheetName, $this->storageContainerFiles)) {
-            throw new NotFoundException("Spreadsheet '{$this->spreadsheetName}' not found.");
-        };
         $content = [];
-        $spreadsheetFile = $this->getSpreadsheetFile();
-        $spreadsheet = IOFactory::load($spreadsheetFile);
-        foreach ($spreadsheet->getSheetNames() as $worksheetName) {
-            $content[$worksheetName] = $this->getWorksheet($worksheetName, $spreadsheet);
+
+        foreach ($this->spreadsheet->getSheetNames() as $worksheetName) {
+            $content[$worksheetName] = $this->getWorksheetData($worksheetName);
         };
+
         return $content;
     }
 
@@ -86,30 +98,20 @@ class PHPSpreadsheetWrapper
      * Get worksheet data
      *
      * @param string $worksheetName
-     * @param array $spreadsheet
      * @return array
      * @throws NotFoundException
      * @throws \PhpOffice\PhpSpreadsheet\Exception
-     * @throws \PhpOffice\PhpSpreadsheet\Reader\Exception
      */
-    public function getWorksheet($worksheetName = '', $spreadsheet = [])
+    public function getWorksheetData($worksheetName = '')
     {
         $content = [];
         $headers = [];
 
-        if(empty($spreadsheet)) {
-            $spreadsheetFile = $this->getSpreadsheetFile();
-            $spreadsheet = IOFactory::load($spreadsheetFile);
-        }
-
-        if (!$this->doesSpreadsheetExist($this->spreadsheetName, $this->storageContainerFiles)) {
-            throw new NotFoundException("Spreadsheet '{$this->spreadsheetName}' not found.");
-        };
-        if (!$spreadsheet->sheetNameExists($worksheetName)) {
+        if (!$this->spreadsheet->sheetNameExists($worksheetName)) {
             throw new NotFoundException("Worksheet '{$worksheetName}' does not exist in '{$this->spreadsheetName}'.");
         };
 
-        foreach ($spreadsheet->getSheetByName($worksheetName)->getRowIterator() as $key => $row) {
+        foreach ($this->spreadsheet->getSheetByName($worksheetName)->getRowIterator() as $key => $row) {
             $cellIterator = $row->getCellIterator();
             $cellIterator->setIterateOnlyExistingCells(true);
             $row_values = [];

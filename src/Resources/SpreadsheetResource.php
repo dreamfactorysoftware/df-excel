@@ -81,9 +81,9 @@ class SpreadsheetResource extends BaseRestResource
             if (empty($spreadsheetName)) {
                 return $content;
             } elseif (!empty($worksheetName)) {
-                return ResponseFactory::create($spreadsheetWrapper->getWorksheet($worksheetName), 'application/json');
+                return ResponseFactory::create($spreadsheetWrapper->getWorksheetData($worksheetName), 'application/json');
             } else {
-                return ResponseFactory::create($spreadsheetWrapper->getSpreadsheet(), 'application/json');
+                return ResponseFactory::create($spreadsheetWrapper->getSpreadsheetData(), 'application/json');
             }
         } catch (\Exception $e) {
             \Log::error('Failed to fetch from storage service . ' . $e->getMessage());
