@@ -106,35 +106,32 @@ class PHPSpreadsheetWrapper
      * @param string $worksheetName
      * @return array
      * @throws NotFoundException
-     * @throws \PhpOffice\PhpSpreadsheet\Exception
      */
     public function getWorksheetData($worksheetName = '')
     {
         $content = [];
         $headers = [];
-        $iterateExistingCells = filter_var(array_get($this->parameters, 'iterate_only_existing_cells', true), FILTER_VALIDATE_BOOLEAN);
-        $formattedValues = filter_var(array_get($this->parameters,'formatted_values', true), FILTER_VALIDATE_BOOLEAN);
-        $firstRowHeaders = filter_var(array_get($this->parameters,'first_row_headers', true), FILTER_VALIDATE_BOOLEAN);
+        $skipEmptyRows = filter_var(array_get($this->parameters, 'skip_empty_rows', false), FILTER_VALIDATE_BOOLEAN);
+        $calculateFormulas = filter_var(array_get($this->parameters, 'calculate_formulas', false), FILTER_VALIDATE_BOOLEAN);
+        $formattedValues = filter_var(array_get($this->parameters, 'formatted_values', true), FILTER_VALIDATE_BOOLEAN);
+        $firstRowHeaders = filter_var(array_get($this->parameters, 'first_row_headers', true), FILTER_VALIDATE_BOOLEAN);
 
         if (!$this->spreadsheet->sheetNameExists($worksheetName)) {
             throw new NotFoundException("Worksheet '{$worksheetName}' does not exist in '{$this->spreadsheetName}'.");
         };
 
-        foreach ($this->spreadsheet->getSheetByName($worksheetName)->getRowIterator() as $key => $row) {
-            $row_values = [];
-            $cellIterator = $row->getCellIterator();
-            $cellIterator->setIterateOnlyExistingCells($iterateExistingCells);
+        $maxCell = $this->spreadsheet->getSheetByName($worksheetName)->getHighestRowAndColumn();
+        $range = $this->spreadsheet->getSheetByName($worksheetName)->rangeToArray('A1:' . $maxCell['column'] . $maxCell['row'],
+            '', $calculateFormulas, $formattedValues, true);
 
-            foreach ($cellIterator as $cellKey => $cell) {
-                $cellValue = $formattedValues ? $cell->getFormattedValue() : $cell->getValue();
-                $row_values[$cellKey] = $cellValue;
-            }
+        foreach ($range as $key => $row) {
+            if ($skipEmptyRows && $this->isEmptyRow($row)) continue;
             if ($firstRowHeaders && $key === 1) {
-                $headers = $row_values;
+                $headers = $row;
                 continue;
             }
 
-            $content[] = $this->mapRowContent($headers, $row_values);
+            $content[] = $this->mapRowContent($headers, $row);
         }
 
         return $content;
@@ -157,6 +154,22 @@ class PHPSpreadsheetWrapper
         }
 
         return (object)$result;
+    }
+
+    /**
+     * Check if each cell is empty
+     *
+     * @param $row
+     * @return bool
+     */
+    protected function isEmptyRow($row)
+    {
+        foreach ($row as $cell) {
+            if (!empty($cell)) {
+                return false;
+            }
+        }
+        return true;
     }
 
 
