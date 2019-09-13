@@ -87,7 +87,6 @@ class PHPSpreadsheetWrapper
      *
      * @return array
      * @throws NotFoundException
-     * @throws \PhpOffice\PhpSpreadsheet\Exception
      */
     public function getSpreadsheetData()
     {
@@ -120,8 +119,10 @@ class PHPSpreadsheetWrapper
             throw new NotFoundException("Worksheet '{$worksheetName}' does not exist in '{$this->spreadsheetName}'.");
         };
 
-        $maxCell = $this->spreadsheet->getSheetByName($worksheetName)->getHighestRowAndColumn();
-        $range = $this->spreadsheet->getSheetByName($worksheetName)->rangeToArray('A1:' . $maxCell['column'] . $maxCell['row'],
+        $worksheet = $this->spreadsheet->getSheetByName($worksheetName);
+        $maxCell = $worksheet->getHighestRowAndColumn();
+        $firstColumn = $worksheet->getCellByColumnAndRow(1,1)->getCoordinate();
+        $range = $worksheet->rangeToArray($firstColumn . ':' . $maxCell['column'] . $maxCell['row'],
             '', $calculateFormulas, $formattedValues, true);
 
         foreach ($range as $key => $row) {
