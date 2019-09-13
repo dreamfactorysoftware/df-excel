@@ -183,16 +183,22 @@ class SpreadsheetResource extends BaseRestResource
                 'description' => 'Headers located in the first row. Default is true.',
             ],
             [
-                'name' => 'iterate_only_existing_cells',
+                'name' => 'skip_empty_rows',
                 'in' => 'query',
                 'schema' => ['type' => 'boolean'],
-                'description' => 'Use iterateOnlyExistingCells mod. Default is true.',
+                'description' => 'Determines whether to skip empty rows. Default is false.',
+            ],
+            [
+                'name' => 'calculate_formulas',
+                'in' => 'query',
+                'schema' => ['type' => 'boolean'],
+                'description' => 'Calculate formulas. Default is false.',
             ],
             [
                 'name' => 'formatted_values',
                 'in' => 'query',
                 'schema' => ['type' => 'boolean'],
-                'description' => 'Use getFormattedValue() from cell. Default is true.',
+                'description' => 'Format data. Default is true.',
             ],
             [
                 'name' => 'memory_limit',
