@@ -180,25 +180,25 @@ class SpreadsheetResource extends BaseRestResource
                 'name' => 'first_row_headers',
                 'in' => 'query',
                 'schema' => ['type' => 'boolean'],
-                'description' => 'Set true if headers located in the first row.',
+                'description' => 'Headers located in the first row. Default is true.',
             ],
             [
                 'name' => 'iterate_only_existing_cells',
                 'in' => 'query',
                 'schema' => ['type' => 'boolean'],
-                'description' => 'Set true to use iterateOnlyExistingCells mod.',
+                'description' => 'Use iterateOnlyExistingCells mod. Default is true.',
             ],
             [
                 'name' => 'formatted_values',
                 'in' => 'query',
                 'schema' => ['type' => 'boolean'],
-                'description' => 'Set true to use getFormattedValue() from cell.',
+                'description' => 'Use getFormattedValue() from cell. Default is true.',
             ],
             [
                 'name' => 'memory_limit',
                 'in' => 'query',
                 'schema' => ['type' => 'string'],
-                'description' => 'Set php.ini\'s memory limit. (-1 = no limit)',
+                'description' => 'Extend php.ini\'s memory limit in case of \'Allowed memory size of xxx bytes exhausted\' error. Default is 128M (-1 = no limit).',
             ]
         ];
     }
