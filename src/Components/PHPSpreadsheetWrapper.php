@@ -112,9 +112,9 @@ class PHPSpreadsheetWrapper
     {
         $content = [];
         $headers = [];
-        $iterateExistingCells = isset($this->parameters['iterate_only_existing_cells']) && filter_var($this->parameters['iterate_only_existing_cells'], FILTER_VALIDATE_BOOLEAN);
-        $formattedValues = isset($this->parameters['formatted_values']) && filter_var($this->parameters['formatted_values'], FILTER_VALIDATE_BOOLEAN);
-        $firstRowHeaders = isset($this->parameters['first_row_headers']) && filter_var($this->parameters['first_row_headers'], FILTER_VALIDATE_BOOLEAN);
+        $iterateExistingCells = filter_var(array_get($this->parameters, 'iterate_only_existing_cells', true), FILTER_VALIDATE_BOOLEAN);
+        $formattedValues = filter_var(array_get($this->parameters,'formatted_values', true), FILTER_VALIDATE_BOOLEAN);
+        $firstRowHeaders = filter_var(array_get($this->parameters,'first_row_headers', true), FILTER_VALIDATE_BOOLEAN);
 
         if (!$this->spreadsheet->sheetNameExists($worksheetName)) {
             throw new NotFoundException("Worksheet '{$worksheetName}' does not exist in '{$this->spreadsheetName}'.");
