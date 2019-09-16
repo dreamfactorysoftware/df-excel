@@ -4,7 +4,6 @@ namespace DreamFactory\Core\Excel;
 use DreamFactory\Core\Excel\Models\ExcelConfig;
 use DreamFactory\Core\Services\ServiceManager;
 use DreamFactory\Core\Services\ServiceType;
-use DreamFactory\Core\Enums\ServiceTypeGroups;
 use DreamFactory\Core\Enums\LicenseLevel;
 use DreamFactory\Core\Excel\Services\ExcelService;
 use Illuminate\Routing\Router;

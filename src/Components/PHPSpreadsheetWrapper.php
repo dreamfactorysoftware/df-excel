@@ -87,7 +87,6 @@ class PHPSpreadsheetWrapper
      *
      * @return array
      * @throws NotFoundException
-     * @throws \PhpOffice\PhpSpreadsheet\Exception
      */
     public function getSpreadsheetData()
     {
