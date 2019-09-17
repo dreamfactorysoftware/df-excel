@@ -4,6 +4,7 @@ namespace DreamFactory\Core\Database\Testing;
 
 use DreamFactory\Core\Enums\Verbs;
 use DreamFactory\Core\Models\User;
+use DreamFactory\Core\Models\Service;
 use DreamFactory\Core\Utility\JWTUtilities;
 use DreamFactory\Core\Testing\TestCase;
 use Illuminate\Http\File;
@@ -33,16 +34,15 @@ class ExcelTest extends TestCase
 
     public function tearDown()
     {
-//        Service::whereName('test-excel')->delete();
-
-
         $this->deleteTestSpreadsheet();
+        Service::whereName('test-excel')->delete();
 
         parent::tearDown();
     }
 
     public function testSpreadsheetList()
     {
+        $this->createTestExcelService();
         $user = User::find(1);
         Storage::putFileAs('/', new File(__DIR__ . '/pivot-tables.xlsx'), 'pivot-tables.xlsx');
         $token = JWTUtilities::makeJWTByUser($user->id, $user->email);
@@ -62,6 +62,7 @@ class ExcelTest extends TestCase
 
     public function testSpreadsheet()
     {
+        $this->createTestExcelService();
         $this->uploadTestSpreadsheet();
         $user = User::find(1);
         $token = JWTUtilities::makeJWTByUser($user->id, $user->email);
@@ -78,6 +79,7 @@ class ExcelTest extends TestCase
 
     public function testWorksheet()
     {
+        $this->createTestExcelService();
         Storage::putFileAs('/', new File(__DIR__ . '/pivot-tables.xlsx'), 'pivot-tables.xlsx');
         $user = User::find(1);
         $token = JWTUtilities::makeJWTByUser($user->id, $user->email);
@@ -96,6 +98,13 @@ class ExcelTest extends TestCase
         $rs->assertJsonFragment($jsonPart);
 
         $this->assertFalse(isset($rs->decodeResponseJson()['Sheet2']));
+    }
+
+    public function stage()
+    {
+        parent::stage();
+
+        $this->createTestExcelService();
     }
 
     private function uploadTestSpreadsheet()
@@ -127,16 +136,14 @@ class ExcelTest extends TestCase
         return (json_last_error() == JSON_ERROR_NONE);
     }
 
-    public function stage()
+    private function createTestExcelService()
     {
-        parent::stage();
-
         if (!$this->serviceExists('test-excel')) {
             \DreamFactory\Core\Models\Service::create(
                 [
                     'name' => 'test-excel',
                     'label' => 'Excel Service',
-                    'description' => 'Service to manage XLS, XLSX, CSV files.',
+                    'description' => 'Service to manage excel files.',
                     'is_active' => true,
                     'type' => 'excel',
                     'config' => [
