@@ -31,7 +31,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
                     'label'                 => 'Excel Service',
                     'description'           => 'Service to manage XLS, XLSX, CSV files.',
                     'group'                 => 'Excel',
-                    'subscription_required' => LicenseLevel::GOLD,
+                    'subscription_required' => LicenseLevel::SILVER,
                     'config_handler'        => ExcelConfig::class,
                     'factory'               => function ($config) {
                         return new ExcelService($config);
