@@ -151,6 +151,7 @@ class PHPSpreadsheetWrapper
 
         foreach ($data as $key => $cellValue) {
             $header = isset($headers[$key]) ? $headers[$key] : (string)$key;
+            if(empty($header) && empty($cellValue)) continue;
             $result[$header] = $cellValue;
         }
 
