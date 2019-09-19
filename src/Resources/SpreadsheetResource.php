@@ -62,12 +62,12 @@ class SpreadsheetResource extends BaseRestResource
         $serviceConfig = $this->getService()->getConfig();
         $storageServiceId = array_get($serviceConfig, 'storage_service_id');
         $storageContainer = array_get($serviceConfig, 'storage_container', '/');
-        $service = ServiceManager::getServiceById($storageServiceId);
-        $serviceName = $service->getName();
+        $storageService = ServiceManager::getServiceById($storageServiceId);
+        $storageServiceName = $storageService->getName();
 
         try {
             $content = ServiceManager::handleRequest(
-                $serviceName,
+                $storageServiceName,
                 Verbs::GET,
                 $storageContainer,
                 [
@@ -79,7 +79,7 @@ class SpreadsheetResource extends BaseRestResource
             if (empty($spreadsheetName)) {
                 return $content;
             } else {
-                $spreadsheetWrapper = new PHPSpreadsheetWrapper($content, $serviceName, $storageContainer, $spreadsheetName, $this->request->getParameters());
+                $spreadsheetWrapper = new PHPSpreadsheetWrapper($content, $storageServiceName, $storageContainer, $spreadsheetName, $this->request->getParameters());
 
                 if (!empty($worksheetName)) {
                     return ResponseFactory::create($spreadsheetWrapper->getWorksheetData($worksheetName), 'application/json');
@@ -183,16 +183,22 @@ class SpreadsheetResource extends BaseRestResource
                 'description' => 'Headers located in the first row. Default is true.',
             ],
             [
-                'name' => 'iterate_only_existing_cells',
+                'name' => 'skip_empty_rows',
                 'in' => 'query',
                 'schema' => ['type' => 'boolean'],
-                'description' => 'Use iterateOnlyExistingCells mod. Default is true.',
+                'description' => 'Determines whether to skip empty rows. Default is false.',
+            ],
+            [
+                'name' => 'calculate_formulas',
+                'in' => 'query',
+                'schema' => ['type' => 'boolean'],
+                'description' => 'Calculate formulas. Default is false.',
             ],
             [
                 'name' => 'formatted_values',
                 'in' => 'query',
                 'schema' => ['type' => 'boolean'],
-                'description' => 'Use getFormattedValue() from cell. Default is true.',
+                'description' => 'Format data. Default is true.',
             ],
             [
                 'name' => 'memory_limit',
