@@ -14,6 +14,3 @@ update_configs:
           dependency_name: "dreamfactory/df*"
     version_requirement_updates:
       "increase_versions"
-    automerged_updates:
-      - match:
-          dependency_name: "dreamfactory/df*"
