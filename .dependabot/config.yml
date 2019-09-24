@@ -18,4 +18,4 @@ update_configs:
       - match:
           dependency_type: "all"
           update_type: "all"
-          dependency_name: "dreamfactory*"
+          dependency_name: "dreamfactory/df*"
