@@ -4,7 +4,7 @@ update_configs:
   - package_manager: "php:composer"
     directory: "/"
     update_schedule: "live"
-    target_branch: "DP-67"
+    target_branch: "master"
     default_labels:
       - "dependencies"
       - "dependabot"
