@@ -50,7 +50,7 @@ class ExcelService extends BaseRestService
         $storageContainer = array_get($serviceConfig, 'storage_container', '/');
         $storageService = ServiceManager::getServiceById($storageServiceId);
         $storageServiceName = $storageService->getName();
-        return ServiceManager::handleRequest(
+        $response =  ServiceManager::handleRequest(
             $storageServiceName,
             Verbs::GET,
             $storageContainer,
@@ -59,5 +59,6 @@ class ExcelService extends BaseRestService
                 'as_list' => $this->request->getParameterAsBool('as_list')
             ]
         );
+        return $response;
     }
 }
