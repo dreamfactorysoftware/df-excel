@@ -130,6 +130,12 @@ class SpreadsheetResource extends BaseRestResource
                     'operationId' => 'get' . $capitalized . 'Spreadsheet',
                     'parameters' => array_merge($this->getSpreadsheetApiDocsParameters(), [
                         [
+                            'name' => 'with_worksheet_names',
+                            'in' => 'query',
+                            'schema' => ['type' => 'boolean'],
+                            'description' => 'Do you want to separate data by Worksheets?',
+                        ],
+                        [
                             'name' => 'spreadsheet_name',
                             'in' => 'path',
                             'schema' => ['type' => 'string'],

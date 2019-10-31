@@ -91,9 +91,14 @@ class PHPSpreadsheetWrapper
     public function getSpreadsheetData()
     {
         $content = [];
+        $withWorksheetNames = array_get_bool($this->parameters, 'with_worksheet_names', true);
 
         foreach ($this->spreadsheet->getSheetNames() as $worksheetName) {
-            $content[$worksheetName] = $this->getWorksheetData($worksheetName);
+            if ($withWorksheetNames) {
+                $content[$worksheetName] = $this->getWorksheetData($worksheetName);
+            } else {
+                $content = array_merge($content, $this->getWorksheetData($worksheetName));
+            }
         };
 
         return $content;
@@ -121,7 +126,7 @@ class PHPSpreadsheetWrapper
 
         $worksheet = $this->spreadsheet->getSheetByName($worksheetName);
         $maxCell = $worksheet->getHighestRowAndColumn();
-        $firstColumn = $worksheet->getCellByColumnAndRow(1,1)->getCoordinate();
+        $firstColumn = $worksheet->getCellByColumnAndRow(1, 1)->getCoordinate();
         $range = $worksheet->rangeToArray($firstColumn . ':' . $maxCell['column'] . $maxCell['row'],
             '', $calculateFormulas, $formattedValues, true);
 
@@ -151,7 +156,7 @@ class PHPSpreadsheetWrapper
 
         foreach ($data as $key => $cellValue) {
             $header = isset($headers[$key]) ? $headers[$key] : (string)$key;
-            if(empty($header) && empty($cellValue)) continue;
+            if (empty($header) && empty($cellValue)) continue;
             $result[$header] = $cellValue;
         }
 
