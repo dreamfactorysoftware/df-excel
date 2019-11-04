@@ -66,15 +66,7 @@ class SpreadsheetResource extends BaseRestResource
         $storageServiceName = $storageService->getName();
 
         try {
-            $content = ServiceManager::handleRequest(
-                $storageServiceName,
-                Verbs::GET,
-                $storageContainer,
-                [
-                    'include_folders' => $this->request->getParameterAsBool('include_folders', false),
-                    'as_list' => $this->request->getParameterAsBool('as_list')
-                ]
-            );
+            $content = $this->getService()->getContainerResponse();
 
             if (empty($spreadsheetName)) {
                 return $content;
