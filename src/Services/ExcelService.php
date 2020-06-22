@@ -55,8 +55,8 @@ class ExcelService extends BaseRestService
             Verbs::GET,
             $storageContainer,
             [
-                'include_folders' => $this->request->getParameterAsBool('include_folders', false),
-                'as_list' => $this->request->getParameterAsBool('as_list')
+                'include_folders' => request()->get('include_folders', false),
+                'as_list' => request()->get('as_list'),
             ]
         );
         return $response;
