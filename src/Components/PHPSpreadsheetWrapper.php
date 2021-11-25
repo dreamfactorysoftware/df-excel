@@ -80,6 +80,8 @@ class PHPSpreadsheetWrapper
         $inputFileType = IOFactory::identify($spreadsheetFile);
         $reader = IOFactory::createReader($inputFileType);
         $this->spreadsheet = $reader->load($spreadsheetFile);
+
+        // remove temp spreadsheet file
         unlink($spreadsheetFile);
     }
 
