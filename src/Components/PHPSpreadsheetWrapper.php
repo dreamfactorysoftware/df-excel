@@ -80,6 +80,7 @@ class PHPSpreadsheetWrapper
         $inputFileType = IOFactory::identify($spreadsheetFile);
         $reader = IOFactory::createReader($inputFileType);
         $this->spreadsheet = $reader->load($spreadsheetFile);
+        unlink($spreadsheetFile);
     }
 
     /**
