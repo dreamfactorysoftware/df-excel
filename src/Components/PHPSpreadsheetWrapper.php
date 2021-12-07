@@ -76,7 +76,7 @@ class PHPSpreadsheetWrapper
             ini_set('memory_limit', $this->parameters['memory_limit']);
         }
 
-        $spreadsheetFile = $this->getSpreadsheetFile();
+        $spreadsheetFile = $this->getSpreadsheetTempFile();
         $inputFileType = IOFactory::identify($spreadsheetFile);
         $reader = IOFactory::createReader($inputFileType);
         $this->spreadsheet = $reader->load($spreadsheetFile);
@@ -214,7 +214,7 @@ class PHPSpreadsheetWrapper
      *
      * @return bool|string
      */
-    protected function getSpreadsheetFile()
+    protected function getSpreadsheetTempFile()
     {
         $result = \ServiceManager::handleRequest(
             $this->serviceName,
@@ -222,8 +222,19 @@ class PHPSpreadsheetWrapper
             $this->storageContainer . $this->spreadsheetName,
             ['download' => 1, 'content' => 1, 'include_properties' => 1]
         );
+        $this->cleanTempDirectory();
         $tmpFile = tempnam(sys_get_temp_dir(), 'tempexcel');
         file_put_contents($tmpFile, base64_decode($result->getContent()['content']));
         return $tmpFile;
+    }
+
+
+    /**
+     * Remove all previously created df-excel tmp files
+     *
+     */
+    protected function cleanTempDirectory()
+    {
+        array_map('unlink', glob(sys_get_temp_dir() . '/tempexcel*'));
     }
 }
