@@ -5,6 +5,7 @@ namespace DreamFactory\Core\Excel\Components;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use DreamFactory\Core\Enums\Verbs;
 use DreamFactory\Core\Exceptions\NotFoundException;
+use Illuminate\Support\Arr;
 
 
 class PHPSpreadsheetWrapper
@@ -115,10 +116,10 @@ class PHPSpreadsheetWrapper
     {
         $content = [];
         $headers = [];
-        $skipEmptyRows = filter_var(array_get($this->parameters, 'skip_empty_rows', false), FILTER_VALIDATE_BOOLEAN);
-        $calculateFormulas = filter_var(array_get($this->parameters, 'calculate_formulas', false), FILTER_VALIDATE_BOOLEAN);
-        $formattedValues = filter_var(array_get($this->parameters, 'formatted_values', true), FILTER_VALIDATE_BOOLEAN);
-        $firstRowHeaders = filter_var(array_get($this->parameters, 'first_row_headers', true), FILTER_VALIDATE_BOOLEAN);
+        $skipEmptyRows = filter_var(Arr::get($this->parameters, 'skip_empty_rows', false), FILTER_VALIDATE_BOOLEAN);
+        $calculateFormulas = filter_var(Arr::get($this->parameters, 'calculate_formulas', false), FILTER_VALIDATE_BOOLEAN);
+        $formattedValues = filter_var(Arr::get($this->parameters, 'formatted_values', true), FILTER_VALIDATE_BOOLEAN);
+        $firstRowHeaders = filter_var(Arr::get($this->parameters, 'first_row_headers', true), FILTER_VALIDATE_BOOLEAN);
 
         if (!$this->spreadsheet->sheetNameExists($worksheetName)) {
             throw new NotFoundException("Worksheet '{$worksheetName}' does not exist in '{$this->spreadsheetName}'.");

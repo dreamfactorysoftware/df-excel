@@ -4,6 +4,7 @@ use DreamFactory\Core\Services\BaseRestService;
 use DreamFactory\Core\Excel\Resources\SpreadsheetResource;
 use DreamFactory\Core\Enums\Verbs;
 use ServiceManager;
+use Illuminate\Support\Arr;
 
 class ExcelService extends BaseRestService
 {
@@ -25,16 +26,16 @@ class ExcelService extends BaseRestService
         $nameField = static::getResourceIdentifier();
 
         foreach ($this->getResources() as $resource) {
-            $name = array_get($resource, $nameField);
+            $name = Arr::get($resource, $nameField);
             if (!empty($this->getPermissions())) {
                 $list[] = $name . '/';
             }
         }
 
-        $files = array_get($this->getContainerResponse()->getContent(), 'resource', $this->getContainerResponse()->getContent());
+        $files = Arr::get($this->getContainerResponse()->getContent(), 'resource', $this->getContainerResponse()->getContent());
 
         foreach ($files as $resource) {
-            $name = array_get($resource, $nameField);
+            $name = Arr::get($resource, $nameField);
             if (!empty($this->getPermissions())) {
                 $list[] = '_spreadsheet/' . $name . '/';
             }
@@ -46,8 +47,8 @@ class ExcelService extends BaseRestService
     public function getContainerResponse()
     {
         $serviceConfig = $this->getConfig();
-        $storageServiceId = array_get($serviceConfig, 'storage_service_id');
-        $storageContainer = array_get($serviceConfig, 'storage_container', '/');
+        $storageServiceId = Arr::get($serviceConfig, 'storage_service_id');
+        $storageContainer = Arr::get($serviceConfig, 'storage_container', '/');
         $storageService = ServiceManager::getServiceById($storageServiceId);
         $storageServiceName = $storageService->getName();
         $response =  ServiceManager::handleRequest(

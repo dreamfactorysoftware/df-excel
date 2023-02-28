@@ -10,6 +10,7 @@ use DreamFactory\Core\Excel\Models\ExcelConfig;
 use DreamFactory\Core\Enums\ApiOptions;
 use DreamFactory\Core\Utility\ResponseFactory;
 use ServiceManager;
+use Illuminate\Support\Arr;
 
 class SpreadsheetResource extends BaseRestResource
 {
@@ -56,12 +57,12 @@ class SpreadsheetResource extends BaseRestResource
     protected function handleGET()
     {
         $resourceArray = $this->resourceArray;
-        $spreadsheetName = array_get($resourceArray, 0);
-        $worksheetName = array_get($resourceArray, 1);
+        $spreadsheetName = Arr::get($resourceArray, 0);
+        $worksheetName = Arr::get($resourceArray, 1);
 
         $serviceConfig = $this->getService()->getConfig();
-        $storageServiceId = array_get($serviceConfig, 'storage_service_id');
-        $storageContainer = array_get($serviceConfig, 'storage_container', '/');
+        $storageServiceId = Arr::get($serviceConfig, 'storage_service_id');
+        $storageContainer = Arr::get($serviceConfig, 'storage_container', '/');
         $storageService = ServiceManager::getServiceById($storageServiceId);
         $storageServiceName = $storageService->getName();
 
