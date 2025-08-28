@@ -49,7 +49,23 @@ class ExcelService extends BaseRestService
         $serviceConfig = $this->getConfig();
         $storageServiceId = Arr::get($serviceConfig, 'storage_service_id');
         $storageContainer = Arr::get($serviceConfig, 'storage_container', '/');
+        
+        // Check if storage service is configured
+        if (empty($storageServiceId)) {
+            throw new \DreamFactory\Core\Exceptions\BadRequestException(
+                'Excel service is not properly configured. Please configure a storage service (storage_service_id) in the service configuration.'
+            );
+        }
+        
         $storageService = ServiceManager::getServiceById($storageServiceId);
+        
+        // Check if storage service exists
+        if (empty($storageService)) {
+            throw new \DreamFactory\Core\Exceptions\BadRequestException(
+                'Configured storage service (ID: ' . $storageServiceId . ') not found. Please check your service configuration.'
+            );
+        }
+        
         $storageServiceName = $storageService->getName();
         $response =  ServiceManager::handleRequest(
             $storageServiceName,
