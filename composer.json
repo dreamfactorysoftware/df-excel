@@ -27,7 +27,7 @@
   "require":     {
     "dreamfactory/df-core":   "~1.0",
     "dreamfactory/df-system": "~0.5",
-    "phpoffice/phpspreadsheet": "~2.3.0"
+    "phpoffice/phpspreadsheet": "~1.29.0"
   },
   "require-dev": {
     "phpunit/phpunit": "@stable"
