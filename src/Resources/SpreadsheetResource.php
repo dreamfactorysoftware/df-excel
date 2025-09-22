@@ -63,7 +63,25 @@ class SpreadsheetResource extends BaseRestResource
         $serviceConfig = $this->getService()->getConfig();
         $storageServiceId = Arr::get($serviceConfig, 'storage_service_id');
         $storageContainer = Arr::get($serviceConfig, 'storage_container', '/');
+        
+        // Check if storage service is configured
+        if (empty($storageServiceId)) {
+            throw new RestException(
+                400, 
+                'Excel service is not properly configured. Please configure a storage service (storage_service_id) in the service configuration.'
+            );
+        }
+        
         $storageService = ServiceManager::getServiceById($storageServiceId);
+        
+        // Check if storage service exists
+        if (empty($storageService)) {
+            throw new RestException(
+                400, 
+                'Configured storage service (ID: ' . $storageServiceId . ') not found. Please check your service configuration.'
+            );
+        }
+        
         $storageServiceName = $storageService->getName();
 
         try {
