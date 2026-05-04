@@ -153,15 +153,40 @@ class PHPSpreadsheetWrapper
      */
     protected function mapRowContent($headers, $data)
     {
+        $neutralizeFormulas = filter_var(
+            Arr::get($this->parameters, 'neutralize_formulas', true),
+            FILTER_VALIDATE_BOOLEAN
+        );
+
         $result = [];
 
         foreach ($data as $key => $cellValue) {
             $header = isset($headers[$key]) ? $headers[$key] : (string)$key;
             if (empty($header) && empty($cellValue)) continue;
-            $result[$header] = $cellValue;
+            $result[$header] = $neutralizeFormulas ? self::neutralizeFormula($cellValue) : $cellValue;
         }
 
         return (object)$result;
+    }
+
+    /**
+     * Defang spreadsheet/CSV formula injection: cell values that begin with
+     * =, +, -, @, TAB, or CR are read by Excel/Numbers/LibreOffice as formulas
+     * when re-emitted by the consumer. Prefix a single quote so the consumer
+     * sees the literal text.
+     *
+     * Returns non-string values untouched.
+     */
+    public static function neutralizeFormula($value)
+    {
+        if (!is_string($value) || $value === '') {
+            return $value;
+        }
+        $first = $value[0];
+        if ($first === '=' || $first === '+' || $first === '-' || $first === '@' || $first === "\t" || $first === "\r") {
+            return "'" . $value;
+        }
+        return $value;
     }
 
     /**
