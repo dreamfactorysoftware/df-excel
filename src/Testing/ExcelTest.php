@@ -32,7 +32,7 @@ class ExcelTest extends TestCase
         ]
     ];
 
-    public function tearDown()
+    public function tearDown(): void
     {
         $this->deleteTestSpreadsheet();
         Service::whereName('test-excel')->delete();
