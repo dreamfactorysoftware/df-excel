@@ -127,7 +127,7 @@ class PHPSpreadsheetWrapper
 
         $worksheet = $this->spreadsheet->getSheetByName($worksheetName);
         $maxCell = $worksheet->getHighestRowAndColumn();
-        $firstColumn = $worksheet->getCellByColumnAndRow(1, 1)->getCoordinate();
+        $firstColumn = $worksheet->getCell('A1')->getCoordinate();
         $range = $worksheet->rangeToArray($firstColumn . ':' . $maxCell['column'] . $maxCell['row'],
             '', $calculateFormulas, $formattedValues, true);
 
