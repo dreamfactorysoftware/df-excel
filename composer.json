@@ -28,7 +28,7 @@
     "php": "^8.3",
     "laravel/helpers": "^1.8",
     "dreamfactory/df-core": "~1.0.4",
-    "phpoffice/phpspreadsheet": "^3.5"
+    "phpoffice/phpspreadsheet": "^5.0"
   },
   "require-dev": {
     "laravel/framework": "^13.7",
