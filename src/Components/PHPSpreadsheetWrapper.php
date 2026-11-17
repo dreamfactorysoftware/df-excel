@@ -212,10 +212,18 @@ class PHPSpreadsheetWrapper
             return true;
         }
 
-        // Formatted numbers: optional sign, optional currency symbol, digits
+        // Formatted numbers: optional sign, optional leading or trailing
+        // currency symbol ($ € £ ¥, space or NBSP allowed around it), digits
         // with thousands/decimal separators, optional exponent and percent.
+        // Covers e.g. "-$1,234.50", "-1,234.50 €" (FORMAT_CURRENCY_EUR),
+        // "-1.234,50\u{00A0}€" and "-12%".
+        //
+        // Deliberately conservative: anything else that starts with a sign is
+        // still prefixed with an apostrophe, including negative fractions
+        // ("-1 1/2"), durations ("-1:30:00"), unit suffixes ("-1.00 kg") and
+        // letter currency codes ("-1,234.50 zł"). Letters are never allowed.
         return preg_match(
-            '/^[+-]?[ ]?[$\x{20AC}\x{00A3}\x{00A5}]?[ ]?\d[\d,. \x{00A0}]*(?:[eE][+-]?\d+)?[ ]?%?$/u',
+            '/^[+-]?[ \x{00A0}]?[$\x{20AC}\x{00A3}\x{00A5}]?[ \x{00A0}]?\d[\d,. \x{00A0}]*(?:[eE][+-]?\d+)?[ \x{00A0}]?[%$\x{20AC}\x{00A3}\x{00A5}]?$/u',
             $trimmed
         ) === 1;
     }
