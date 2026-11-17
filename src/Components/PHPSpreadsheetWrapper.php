@@ -175,7 +175,12 @@ class PHPSpreadsheetWrapper
      * when re-emitted by the consumer. Prefix a single quote so the consumer
      * sees the literal text.
      *
-     * Returns non-string values untouched.
+     * Plain numbers are never touched: non-string values (int/float/bool/null)
+     * are returned as-is, and so are strings that are only a number, such as
+     * "-12.5", "+1", "-1e5" or a formatted value like "-1,234.50" / "-$1,234.50"
+     * (the default formatted_values=true returns numeric cells as strings).
+     * A number cannot carry a formula payload, and prefixing it would turn
+     * every negative value into text.
      */
     public static function neutralizeFormula($value)
     {
@@ -184,9 +189,43 @@ class PHPSpreadsheetWrapper
         }
         $first = $value[0];
         if ($first === '=' || $first === '+' || $first === '-' || $first === '@' || $first === "\t" || $first === "\r") {
+            if (self::isNumericString($value)) {
+                return $value;
+            }
             return "'" . $value;
         }
         return $value;
+    }
+
+    /**
+     * True when the string is nothing but a (possibly signed, possibly
+     * formatted) number: no letters, no operators beyond a single leading
+     * sign, no parentheses, pipes or quotes, so it cannot express a formula.
+     */
+    protected static function isNumericString(string $value): bool
+    {
+        $trimmed = trim($value);
+        if ($trimmed === '') {
+            return false;
+        }
+        if (is_numeric($trimmed)) {
+            return true;
+        }
+
+        // Formatted numbers: optional sign, optional leading or trailing
+        // currency symbol ($ € £ ¥, space or NBSP allowed around it), digits
+        // with thousands/decimal separators, optional exponent and percent.
+        // Covers e.g. "-$1,234.50", "-1,234.50 €" (FORMAT_CURRENCY_EUR),
+        // "-1.234,50\u{00A0}€" and "-12%".
+        //
+        // Deliberately conservative: anything else that starts with a sign is
+        // still prefixed with an apostrophe, including negative fractions
+        // ("-1 1/2"), durations ("-1:30:00"), unit suffixes ("-1.00 kg") and
+        // letter currency codes ("-1,234.50 zł"). Letters are never allowed.
+        return preg_match(
+            '/^[+-]?[ \x{00A0}]?[$\x{20AC}\x{00A3}\x{00A5}]?[ \x{00A0}]?\d[\d,. \x{00A0}]*(?:[eE][+-]?\d+)?[ \x{00A0}]?[%$\x{20AC}\x{00A3}\x{00A5}]?$/u',
+            $trimmed
+        ) === 1;
     }
 
     /**
